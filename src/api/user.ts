@@ -1,12 +1,14 @@
 import request from "./request";
 
-// 用户登录
+
 interface loginData{
     userName:string;
     password:string;
     uuid:string;
     code:string
 }
+
+// 用户登录
 export function userLogin(data:loginData){
   return request({
     url: "/user/signIn",
@@ -15,7 +17,7 @@ export function userLogin(data:loginData){
   });
 }
 
-// 用户注册
+
 interface resgisterData{
    userName:string;
    realName:string;
@@ -23,7 +25,7 @@ interface resgisterData{
     uuid:string;
     code:string
 }
-
+// 用户注册
 export function userResgiter(data:resgisterData){
   return request({
     url: "/user/register",

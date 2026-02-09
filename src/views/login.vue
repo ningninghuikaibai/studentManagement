@@ -2,9 +2,7 @@
   <div class="login-page">
     <div class="login-panel">
       <div class="login-panel-content">
-        <h1 style="padding: 0 0 20px 0; color: #409eff; text-align: center">
-          学生管理系统 | 登录
-        </h1>
+        <h1 class="title">学生管理系统 | 登录</h1>
         <el-form
           ref="loginFormRef"
           :rules="rules"
@@ -137,7 +135,10 @@ const handleLogin = async () => {
       return;
     }
     // 登录成功逻辑
-    localStorage.setItem("token", result.token);
+    // const token = result.data.token; 
+    localStorage.setItem("token", result.data.token);
+    // console.log("token=", result.data.token);
+
     ElMessage.success("登录成功");
 
     // 延迟0.5秒进入首页
@@ -205,7 +206,11 @@ const goRegister = () => {
   /* height: 300px; */
   padding: 0 0 0 20px;
 }
-
+.title {
+  padding: 0 0 20px 0;
+  color: #409eff;
+  text-align: center;
+}
 .captchSvg-span {
   cursor: pointer;
   width: 120px;

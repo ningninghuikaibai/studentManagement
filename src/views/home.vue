@@ -32,7 +32,7 @@
       </el-menu>
     </el-col>
         </el-aside>
-        <el-main>
+        <el-main style="height: 100vh; ">
           <router-view></router-view>
         </el-main>
       </el-container>

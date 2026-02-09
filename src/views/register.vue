@@ -2,16 +2,7 @@
   <div class="register-page">
     <div class="register-panel">
       <div class="register-panel-content">
-        <h1
-          style="
-            text-align: center;
-            color: #409eff;
-            padding: 0 10px 0 0;
-            margin: 0 0 30px 0;
-          "
-        >
-          学生管理系统 | 注册
-        </h1>
+        <h1 class="title">学生管理系统 | 注册</h1>
         <el-form
           ref="registerFormRef"
           :model="registerForm"
@@ -101,7 +92,7 @@
               native-type="submit"
               @click="handleRegister"
               :loading="loading"
-              :disabled ="loading"
+              :disabled="loading"
               style="width: 86px; height: 42px"
             >
               注册
@@ -189,10 +180,10 @@ const handleRegister = async () => {
   // registerFrom没值或者loading为true(表明按钮被禁用)
   if (!registerFormRef.value || loading.value) return;
 
-  const valid  = await  registerFormRef.value.validate().catch(() => false)
+  const valid = await registerFormRef.value.validate().catch(() => false);
 
-  if (!valid)  return  // 表单校验不过直接拦截
-  loading.value = true  // 锁住按钮,防止用户多次点击
+  if (!valid) return; // 表单校验不过直接拦截
+  loading.value = true; // 锁住按钮,防止用户多次点击
   try {
     // 发送请求
     const { userName, realName, password, code, uuid } = registerForm.value;
@@ -214,7 +205,7 @@ const handleRegister = async () => {
     }
 
     ElMessage.success("注册成功");
-    loading.value = false
+    loading.value = false;
 
     //注册成功延迟0.5秒进入登录页
     setTimeout(() => {
@@ -238,8 +229,8 @@ const fetchCaptcha = async () => {
     captchaSvg.value = captcha.captchaImage;
   } catch (err) {
     console.error("验证码获取失败", err);
-  }finally{
-    loading.value = false
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -269,7 +260,12 @@ const goLogin = () => {
 
   padding: 40px 0 0 0;
 }
-
+.title {
+  text-align: center;
+  color: #409eff;
+  padding: 0 10px 0 0;
+  margin: 0 0 30px 0;
+}
 .register-form {
   max-width: 600px;
   padding: 0 15px 0 15px;
