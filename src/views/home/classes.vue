@@ -1,22 +1,20 @@
 <template>
   <div class="classes-page">
     <el-form
-      ref="ruleFormRef"
+      ref="ClassesRef"
       style="max-width: 600px"
-      :model="ruleForm"
-      :rules="rules"
       :inline="true"
       hide-required-asterisk
     >
       <el-form-item label="班级名称" prop="name">
-        <el-mention v-model="ruleForm.name" />
+        <el-mention v-model="searchForm.name" />
       </el-form-item>
 
       <el-form-item>
         <el-button type="primary" size="small" @click="handleSearch">
           查询
         </el-button>
-        <el-button type="info" size="small" @click="resetForm(ruleFormRef)">
+        <el-button type="info" size="small" @click="resetForm(ClassesRef)">
           重置
         </el-button>
       </el-form-item>
@@ -63,19 +61,12 @@ import { Plus } from "@element-plus/icons-vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { getClasses } from "@/api/classes";
 
-interface RuleForm {
-  name: string;
-  desc: string;
-}
+// 表单面板
+const ClassesRef = ref<FormInstance>();
 
-const ruleFormRef = ref<FormInstance>();
-const ruleForm = reactive<RuleForm>({
+// 搜索表单数据
+const searchForm = reactive({
   name: "",
-  desc: "",
-});
-
-const rules = reactive<FormRules<RuleForm>>({
-  name: [{ required: true, message: "Please input name", trigger: "blur" }],
 });
 
 // 表格数据
@@ -98,9 +89,9 @@ const buildQueryParams = () => {
     pageNum: queryParams.pageNum,
     pageSize: queryParams.pageSize,
   };
-
-  if (ruleForm.name && ruleForm.name.trim()) {
-    params.className = ruleForm.name.trim();
+  // 如果有name这个参数则搜索时把它带上
+  if (searchForm.name && searchForm.name.trim()) {
+    params.className = searchForm.name.trim();
   }
 
   return params;
@@ -116,9 +107,9 @@ const fetchList = async () => {
     // await sleep(1000)
     const res = await getClasses(buildQueryParams());
     if (res.data.success) {
-        classData.value = res.data.data.rows;
-        total.value = res.data.data.count;
-        console.log(res.data);
+      classData.value = res.data.data.rows;
+      total.value = res.data.data.count;
+      // console.log(res.data);
     }
   } catch (err) {
     console.error("请求失败:", err);
@@ -127,7 +118,7 @@ const fetchList = async () => {
   }
 };
 
-// 搜索
+// 模糊查询
 const handleSearch = () => {
   queryParams.pageNum = 1; // 重置页码
   fetchList();
@@ -143,9 +134,12 @@ onMounted(() => {
   fetchList();
 });
 
+// 重置加载
 const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
+  //  重置表单校验和表单数据
   formEl.resetFields();
+  searchForm.name = ""; // 清除输入框
   queryParams.pageNum = 1; // 重置页码
   fetchList();
 };
