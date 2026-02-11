@@ -4,7 +4,7 @@
       ref="ClassesRef"
       style="max-width: 600px"
       :inline="true"
-      hide-required-asterisk
+      :hide-required-asterisk="false"
     >
       <el-form-item label="班级名称" prop="name">
         <el-mention v-model="searchForm.name" />
@@ -21,7 +21,7 @@
     </el-form>
 
     <el-form-item>
-      <el-button type="primary" size="small" @click="">
+      <el-button type="primary" size="small" @click="openAddDialog">
         <el-icon> <Plus /> </el-icon>添加
       </el-button>
     </el-form-item>
@@ -42,7 +42,7 @@
       <el-table-column label="操作" width="150">
         <template #default="{ row }">
           <div class="mb-4">
-            <el-button text type="primary"
+            <el-button text type="primary" @click="openEditDialog(row)"
               ><el-icon>
                 <Edit />
               </el-icon>
@@ -58,8 +58,36 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- dialog弹窗 -->
+    <el-dialog
+      v-model="dialogVisible"
+      :title="dialogMode === 'add' ? '添加班级' : '编辑班级信息'"
+      width="400px"
+    >
+      <el-form
+        label-position="top"
+        :model="formData"
+        ref="dialogFormRef"
+        label-width="80px"
+        style="padding: 20px"
+        :rules="dialogRules"
+      >
+        <el-form-item label="班级名称" prop="className" required>
+          <el-input v-model="formData.className"></el-input>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <div class="dialog-footer-center">
+          <el-button @click="submitDialogForm" type="primary">确定</el-button>
+          <el-button @click="dialogVisible = false">取消</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 
+  <!-- 底部分页 -->
   <div class="example-pagination-block">
     <el-pagination
       v-model:current-page="queryParams.pageNum"
@@ -73,20 +101,20 @@
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted } from "vue";
-import { Plus, Edit, Delete, } from "@element-plus/icons-vue";
+import { Plus, Edit, Delete } from "@element-plus/icons-vue";
 import type { FormInstance } from "element-plus";
 import { ElButton, ElMessage, ElMessageBox } from "element-plus";
 import {
   addClasses,
-deleteClasses,
+  deleteClasses,
   amendClasses,
   getClasses,
   type ClassItem,
 } from "@/api/classes";
-import { Row } from "element-plus/es/components/table-v2/src/components/index.mjs";
 
 // 表单面板
 const ClassesRef = ref<FormInstance>();
+const dialogFormRef = ref<FormInstance>();
 
 // 搜索表单数据
 const searchForm = reactive({
@@ -94,7 +122,7 @@ const searchForm = reactive({
 });
 
 // 表格数据
-const classData = ref([]);
+const classData = ref(<ClassItem[]>[]);
 // 总条数
 const total = ref(0);
 
@@ -107,7 +135,27 @@ const queryParams = reactive({
 // 加载状态
 const loading = ref(false);
 
-const buttons = [] as const;
+/**弹窗相关 */
+// 弹窗状态
+const dialogVisible = ref(false);
+
+// 设置弹窗的title类型
+const dialogMode = ref<"add" | "edit">("add");
+
+const formData = reactive<{ classId?: number; className: string }>({
+  className: "",
+});
+
+// 弹窗添加班级的表单校验
+// tip:无语的是本来就有校验，我只是想把英文的提醒改为中文而已
+const dialogRules = {
+  className: [
+    {
+      required: true,
+      message: "请输入班级名称",
+    },
+  ],
+};
 
 // 构建请求参数（分页 + 搜索）
 const buildQueryParams = () => {
@@ -183,6 +231,48 @@ const handleDelete = async (row: ClassItem) => {
     fetchList();
   } catch {}
 };
+
+// 编辑班级名称
+const openEditDialog = (row: ClassItem) => {
+  dialogMode.value = "edit";
+  formData.classId = row.classId;
+  formData.className = row.className;
+  dialogVisible.value = true;
+};
+
+// 添加班级名称
+const openAddDialog = () => {
+  dialogMode.value = "add";
+  formData.classId = undefined;
+  formData.className = "";
+  dialogVisible.value = true;
+};
+
+/** 新增和编辑共用,只是新增的话表单无需默认值*/
+// 进行新增和修改的提交
+const submitDialogForm = async () => {
+  if (!formData.className.trim()) {
+    ElMessage.warning("请输入班级名称");
+    return;
+  }
+
+  try {
+    if (dialogMode.value === "add") {
+      await addClasses({ className: formData.className });
+      ElMessage.success("添加成功");
+    } else {
+      await amendClasses({
+        classId: formData.classId!,
+        className: formData.className,
+      });
+      ElMessage.success("修改成功");
+    }
+    dialogVisible.value = false;
+    fetchList();
+  } catch {
+    ElMessage.error("操作失败");
+  }
+};
 </script>
 
 <style scoped>
@@ -217,5 +307,9 @@ const handleDelete = async (row: ClassItem) => {
 .mb-4 {
   display: flex;
   justify-content: center;
+}
+
+.dialog-footer-center {
+  text-align: center;
 }
 </style>
