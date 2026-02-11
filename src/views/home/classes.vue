@@ -67,14 +67,14 @@
     >
       <el-form
         label-position="top"
-        :model="formData"
+        :model="dialogData"
         ref="dialogFormRef"
         label-width="80px"
         style="padding: 20px"
         :rules="dialogRules"
       >
         <el-form-item label="班级名称" prop="className" required>
-          <el-input v-model="formData.className"></el-input>
+          <el-input v-model="dialogData.className"></el-input>
         </el-form-item>
       </el-form>
 
@@ -87,7 +87,7 @@
     </el-dialog>
   </div>
 
-  <!-- 底部分页 -->
+  <!-- pagination分页 -->
   <div class="example-pagination-block">
     <el-pagination
       v-model:current-page="queryParams.pageNum"
@@ -142,7 +142,7 @@ const dialogVisible = ref(false);
 // 设置弹窗的title类型
 const dialogMode = ref<"add" | "edit">("add");
 
-const formData = reactive<{ classId?: number; className: string }>({
+const dialogData = reactive<{ classId?: number; className: string }>({
   className: "",
 });
 
@@ -235,35 +235,35 @@ const handleDelete = async (row: ClassItem) => {
 // 编辑班级名称
 const openEditDialog = (row: ClassItem) => {
   dialogMode.value = "edit";
-  formData.classId = row.classId;
-  formData.className = row.className;
+  dialogData.classId = row.classId;
+  dialogData.className = row.className;
   dialogVisible.value = true;
 };
 
 // 添加班级名称
 const openAddDialog = () => {
   dialogMode.value = "add";
-  formData.classId = undefined;
-  formData.className = "";
+  dialogData.classId = undefined;
+  dialogData.className = "";
   dialogVisible.value = true;
 };
 
 /** 新增和编辑共用,只是新增的话表单无需默认值*/
 // 进行新增和修改的提交
 const submitDialogForm = async () => {
-  if (!formData.className.trim()) {
+  if (!dialogData.className.trim()) {
     ElMessage.warning("请输入班级名称");
     return;
   }
 
   try {
     if (dialogMode.value === "add") {
-      await addClasses({ className: formData.className });
+      await addClasses({ className: dialogData.className });
       ElMessage.success("添加成功");
     } else {
       await amendClasses({
-        classId: formData.classId!,
-        className: formData.className,
+        classId: dialogData.classId!,
+        className: dialogData.className,
       });
       ElMessage.success("修改成功");
     }
@@ -277,7 +277,7 @@ const submitDialogForm = async () => {
 
 <style scoped>
 .classes-page {
-  padding: 20px;
+  /* padding: 20px; */
   width: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
