@@ -32,7 +32,7 @@
       </el-menu>
     </el-col>
         </el-aside>
-        <el-main style="height: 100vh; ">
+        <el-main style="height: calc(100vh - 80px); overflow: auto;">
           <router-view></router-view>
         </el-main>
       </el-container>
@@ -61,8 +61,9 @@ const handleClose = (key: string, keyPath: string[]) => {
 
 <style scoped>
 .common-layout {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  overflow: hidden;
 }
 .el-header {
   height: 80px;

@@ -35,16 +35,32 @@
       :cell-style="{ 'text-align': 'center' }"
     >
       <el-table-column type="index" label="#" width="60" />
-      <el-table-column prop="className" label="班级名称" width="250" />
-      <el-table-column prop="stuCount" label="班级人数" width="250" />
-      <el-table-column prop="createTime" label="创建时间" width="250" />
-      <el-table-column prop="updateTime" label="修改时间" width="250" />
-      <el-table-column prop="" label="操作" width="300" />
+      <el-table-column prop="className" label="班级名称" min-width="150" />
+      <el-table-column prop="stuCount" label="班级人数" width="120" />
+      <el-table-column prop="createTime" label="创建时间" min-width="180" />
+      <el-table-column prop="updateTime" label="修改时间" min-width="180" />
+      <el-table-column label="操作" width="150">
+        <template #default="{ row }">
+          <div class="mb-4">
+            <el-button text type="primary"
+              ><el-icon>
+                <Edit />
+              </el-icon>
+              编辑
+            </el-button>
+            <el-button text type="primary" @click="handleDelete(row)"
+              ><el-icon>
+                <Delete />
+              </el-icon>
+              删除
+            </el-button>
+          </div>
+        </template>
+      </el-table-column>
     </el-table>
   </div>
 
   <div class="example-pagination-block">
-    <!-- <div class="example-demonstration">When you have few pages</div> -->
     <el-pagination
       v-model:current-page="queryParams.pageNum"
       :page-size="queryParams.pageSize"
@@ -57,9 +73,17 @@
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted } from "vue";
-import { Plus } from "@element-plus/icons-vue";
-import type { FormInstance, FormRules } from "element-plus";
-import { getClasses } from "@/api/classes";
+import { Plus, Edit, Delete, } from "@element-plus/icons-vue";
+import type { FormInstance } from "element-plus";
+import { ElButton, ElMessage, ElMessageBox } from "element-plus";
+import {
+  addClasses,
+deleteClasses,
+  amendClasses,
+  getClasses,
+  type ClassItem,
+} from "@/api/classes";
+import { Row } from "element-plus/es/components/table-v2/src/components/index.mjs";
 
 // 表单面板
 const ClassesRef = ref<FormInstance>();
@@ -82,6 +106,8 @@ const queryParams = reactive({
 
 // 加载状态
 const loading = ref(false);
+
+const buttons = [] as const;
 
 // 构建请求参数（分页 + 搜索）
 const buildQueryParams = () => {
@@ -143,9 +169,30 @@ const resetForm = (formEl: FormInstance | undefined) => {
   queryParams.pageNum = 1; // 重置页码
   fetchList();
 };
+
+// 删除班级
+const handleDelete = async (row: ClassItem) => {
+  try {
+    await ElMessageBox.confirm(`确定删除班级【${row.className}】吗？`, "提示", {
+      type: "warning",
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+    });
+    await deleteClasses({ classId: row.classId });
+    ElMessage.success("删除成功");
+    fetchList();
+  } catch {}
+};
 </script>
 
 <style scoped>
+.classes-page {
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
 :deep(.el-form--inline .el-form-item) {
   margin-right: 12px;
 }
@@ -160,6 +207,15 @@ const resetForm = (formEl: FormInstance | undefined) => {
 
 :deep(.el-pagination) {
   /* align-items: center; */
+  justify-content: center;
+}
+
+:deep(.el-table) {
+  width: 100% !important;
+}
+
+.mb-4 {
+  display: flex;
   justify-content: center;
 }
 </style>
