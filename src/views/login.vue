@@ -72,8 +72,8 @@
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
 import { userLogin } from "@/api/user";
-import { getCaptcha } from "@/api/form";
-import type { CaptchaData } from "@/api/form";
+import { getCaptcha } from "@/api/common";
+import type { CaptchaData } from "@/api/common";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";

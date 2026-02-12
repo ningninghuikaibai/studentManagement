@@ -110,8 +110,8 @@
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from "vue";
-import { getCaptcha } from "@/api/form";
-import type { CaptchaData } from "@/api/form";
+import { getCaptcha } from "@/api/common";
+import type { CaptchaData } from "@/api/common";
 import { useRouter } from "vue-router";
 import type { FormInstance, FormRules } from "element-plus";
 import { ElMessage } from "element-plus";
