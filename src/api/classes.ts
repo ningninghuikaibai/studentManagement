@@ -54,18 +54,20 @@ export function addClasses(data: ClassAddDTO) {
   });
 }
 
+// 删除班级信息
+export function deleteClasses(params: ClassDeleteDTO) {
+  return request({
+    url: `/classes/${params.classId}`,
+    method: "DELETE",
+  });
+}
+
+
 // 修改班级信息
 export function amendClasses(data: ClassUpdateDTO) {
   return request({
     url: "/classes",
     method: "PUT",
     data,
-  });
-}
-// 删除班级信息
-export function deleteClasses(params: ClassDeleteDTO) {
-  return request({
-    url: `/classes/${params.classId}`,
-    method: "DELETE",
   });
 }
