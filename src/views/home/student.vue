@@ -18,13 +18,13 @@
         <div class="grid-content ep-bg-purple" />
         <el-form inline>
           <el-form-item label="学号">
-            <el-input style="width: 200px" />
+            <el-input  v-model="queryParams.stuNum" style="width: 200px" />
           </el-form-item>
           <el-form-item label="姓名">
-            <el-input style="width: 200px" />
+            <el-input  v-model="queryParams.stuName" style="width: 200px" />
           </el-form-item>
           <el-form-item label="手机号码">
-            <el-input style="width: 240px" />
+            <el-input  v-model="queryParams.phone" style="width: 240px" />
           </el-form-item>
           <el-form-item>
             <el-button type="primary" size="small" @click="handleSearch"
@@ -40,11 +40,13 @@
             <el-icon> <Plus /> </el-icon>添加
           </el-button>
         </el-form-item>
-        <el-table stripe style="width: 100%" 
+        <el-table
+          stripe
+          style="width: 100%"
           v-loading="loading"
-        :data="studentList"
-         :header-cell-style="{ 'text-align': 'center' }"
-      :cell-style="{ 'text-align': 'center' }"
+          :data="studentList"
+          :header-cell-style="{ 'text-align': 'center' }"
+          :cell-style="{ 'text-align': 'center' }"
         >
           <el-table-column type="index" label="#" width="60" />
           <el-table-column prop="stuNum" label="学号" min-width="120" />
@@ -103,6 +105,7 @@ import {
   addStudent,
   deleteStudent,
   amendStudent,
+  type StudentQuery,
 } from "@/api/student";
 import { getClasses, type ClassItem } from "@/api/classes";
 
@@ -121,9 +124,9 @@ const loading = ref(false);
 // 分页参数
 const queryParams = reactive({
   classId: undefined as number | undefined,
-//   stuName: "",
-//   stuNum: "",
-//   phone: "",
+    stuName: "",
+    stuNum: "",
+    phone: "",
   pageNum: 1,
   pageSize: 10,
 });
@@ -146,7 +149,7 @@ const fetchClassTree = async () => {
       // 转成 Tree 需要的结构
       classList.value = rows.map((item) => ({
         id: item.classId,
-        label: `${item.className}（${item.stuCount}人）`,
+        label: `${item.className}`,
         raw: item, // 把完整数据挂上，后面右侧查询学生要用
       }));
     }
@@ -168,14 +171,13 @@ const fetchClassTree = async () => {
 
 // 获取学生列表
 const fetchStudentList = async () => {
-  if (!queryParams.classId == null) return;
+  if (!queryParams.classId) return;
 
   loading.value = true;
   try {
-    const res = await getStudentList({
-      ...queryParams,
-      classId: queryParams.classId ?? 0,
-    });
+    const res = await getStudentList(
+     buildQueryParams(queryParams)
+    );
 
     if (res.data.success) {
       studentList.value = res.data.data.rows;
@@ -203,13 +205,32 @@ const handleDelete = async (row: any) => {
     await ElMessageBox.confirm("确认删除该学生？", "提示", {
       type: "warning",
     });
-
     await deleteStudent(row.stuId);
-
     ElMessage.success("删除成功");
     fetchStudentList();
   } catch {}
 };
+
+// 对分页参数进行无实参过滤
+function buildQueryParams(params:typeof queryParams) :StudentQuery{
+    const result:Partial<StudentQuery> = {};
+    Object.keys(params).forEach((key) =>{
+        const val = (params as any)[key];
+        if (
+            val !== "" &&
+            val !== undefined &&
+            val !== null
+        ) {
+          (result as any)[key] = val  
+        }
+    });
+    // 强制补齐必传字段
+    result.classId = params.classId!;
+    result.pageNum = params.pageNum;
+    result.pageSize = params.pageSize
+
+    return result as StudentQuery
+}
 
 // 查询
 const handleSearch = () => {
@@ -219,9 +240,9 @@ const handleSearch = () => {
 
 // 重置
 const handleReset = () => {
-//   queryParams.stuName = "";
-//   queryParams.stuNum = "";
-//   queryParams.phone = "";
+    queryParams.stuName = "";
+    queryParams.stuNum = "";
+    queryParams.phone = "";
   queryParams.pageNum = 1;
   fetchStudentList();
 };
