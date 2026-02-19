@@ -18,13 +18,13 @@
         <div class="grid-content ep-bg-purple" />
         <el-form inline>
           <el-form-item label="学号">
-            <el-input  v-model="queryParams.stuNum" style="width: 200px" />
+            <el-input v-model="queryParams.stuNum" style="width: 200px" />
           </el-form-item>
           <el-form-item label="姓名">
-            <el-input  v-model="queryParams.stuName" style="width: 200px" />
+            <el-input v-model="queryParams.stuName" style="width: 200px" />
           </el-form-item>
           <el-form-item label="手机号码">
-            <el-input  v-model="queryParams.phone" style="width: 240px" />
+            <el-input v-model="queryParams.phone" style="width: 240px" />
           </el-form-item>
           <el-form-item>
             <el-button type="primary" size="small" @click="handleSearch"
@@ -124,9 +124,9 @@ const loading = ref(false);
 // 分页参数
 const queryParams = reactive({
   classId: undefined as number | undefined,
-    stuName: "",
-    stuNum: "",
-    phone: "",
+  stuName: "",
+  stuNum: "",
+  phone: "",
   pageNum: 1,
   pageSize: 10,
 });
@@ -175,9 +175,7 @@ const fetchStudentList = async () => {
 
   loading.value = true;
   try {
-    const res = await getStudentList(
-     buildQueryParams(queryParams)
-    );
+    const res = await getStudentList(buildQueryParams(queryParams));
 
     if (res.data.success) {
       studentList.value = res.data.data.rows;
@@ -212,24 +210,23 @@ const handleDelete = async (row: any) => {
 };
 
 // 对分页参数进行无实参过滤
-function buildQueryParams(params:typeof queryParams) :StudentQuery{
-    const result:Partial<StudentQuery> = {};
-    Object.keys(params).forEach((key) =>{
-        const val = (params as any)[key];
-        if (
-            val !== "" &&
-            val !== undefined &&
-            val !== null
-        ) {
-          (result as any)[key] = val  
-        }
-    });
-    // 强制补齐必传字段
-    result.classId = params.classId!;
-    result.pageNum = params.pageNum;
-    result.pageSize = params.pageSize
+function buildQueryParams(params: typeof queryParams): StudentQuery {
+  const result: Partial<StudentQuery> = {};
+  Object.keys(params).forEach((key) => {
+    const val = (params as any)[key];
+    if (val !== "" && 
+        val !== undefined && 
+        val !== null
+      ) {
+      (result as any)[key] = val;
+    }
+  });
+  // 强制补齐必传字段
+  result.classId = params.classId!;
+  result.pageNum = params.pageNum;
+  result.pageSize = params.pageSize;
 
-    return result as StudentQuery
+  return result as StudentQuery;
 }
 
 // 查询
@@ -240,9 +237,9 @@ const handleSearch = () => {
 
 // 重置
 const handleReset = () => {
-    queryParams.stuName = "";
-    queryParams.stuNum = "";
-    queryParams.phone = "";
+  queryParams.stuName = "";
+  queryParams.stuNum = "";
+  queryParams.phone = "";
   queryParams.pageNum = 1;
   fetchStudentList();
 };
