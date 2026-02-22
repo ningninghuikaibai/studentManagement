@@ -7,7 +7,7 @@
           <h1>学生信息管理系统</h1>
         </div>
         <div class="upload-content" ref="avatarWrapper">
-          <el-avatar :src="AvatarImg" @click.stop="togglePopover" />
+          <el-avatar :src="avatarUrl" @click.stop="togglePopover" />
           <transition name="fade">
             <div
               v-if="showPopover"
@@ -132,24 +132,31 @@ const handleLogout = () => {
 const userName = ref<string>("");
 
 // 获取用户信息
+const avatarUrl = ref<string>(AvatarImg);
+
 const fetchUserInfo = async () => {
   try {
     const res = await getUserInfo();
-    console.log("用户信息接口返回：", res);
 
     if (res && res.code === 200 && res.success) {
-      userName.value = res.data?.realName || res.data?.userName || "用户";
+      const user = res.data;
+
+      userName.value = user.realName || user.userName || "用户";
+
+      avatarUrl.value = user.avatar
+        ? `/student/v3${user.avatar}` 
+        : AvatarImg;
     } else {
-      // 静默失败，不影响页面渲染
-      console.warn("获取用户信息失败:", res?.msg || "未知错误");
       userName.value = "用户";
+      avatarUrl.value = AvatarImg;
     }
   } catch (error) {
-    // 静默失败，不影响页面渲染
     console.error("获取用户信息异常:", error);
     userName.value = "用户";
+    avatarUrl.value = AvatarImg;
   }
 };
+
 
 
 onMounted(() => {
