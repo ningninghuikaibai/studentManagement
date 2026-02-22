@@ -122,7 +122,7 @@ const searchForm = reactive({
 });
 
 // 表格数据
-const classData = ref(<ClassItem[]>[]);
+const classData = ref<ClassItem[]>([]);
 // 总条数
 const total = ref(0);
 
@@ -178,15 +178,20 @@ const buildQueryParams = () => {
 const fetchList = async () => {
   loading.value = true;
   try {
-    // await sleep(1000)
     const res = await getClasses(buildQueryParams());
-    if (res.data.success) {
-      classData.value = res.data.data.rows;
-      total.value = res.data.data.count;
-      // console.log(res.data);
+    if (res && res.success) {
+      classData.value = res.data?.rows || [];
+      total.value = res.data?.count || 0;
+    } else {
+      ElMessage.error(res?.msg || "获取班级列表失败");
+      classData.value = [];
+      total.value = 0;
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error("请求失败:", err);
+    ElMessage.error(err?.message || "获取班级列表失败");
+    classData.value = [];
+    total.value = 0;
   } finally {
     loading.value = false;
   }

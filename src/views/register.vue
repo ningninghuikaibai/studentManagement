@@ -195,7 +195,7 @@ const handleRegister = async () => {
       code,
       uuid,
     });
-    const result = res.data;
+    const result = res.data || res;
 
     // 进行业务代码的判断
     if (result.code !== 200) {
@@ -213,9 +213,11 @@ const handleRegister = async () => {
     }, 500);
   } catch (err: any) {
     // 这里只处理 HTTP 错误（如 422、500）
-    console.log("HTTP错误:", err.response?.data);
-    ElMessage.error(err.response?.data?.errorMsg || "注册失败");
+    console.error("注册失败:", err);
+    ElMessage.error(err?.response?.data?.msg || err?.response?.data?.errorMsg || err?.message || "注册失败");
     fetchCaptcha();
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -223,12 +225,16 @@ const handleRegister = async () => {
 const fetchCaptcha = async () => {
   try {
     const res = await getCaptcha();
-    const captcha: CaptchaData = res.data.data;
-
-    registerForm.value.uuid = captcha.uuid;
-    captchaSvg.value = captcha.captchaImage;
-  } catch (err) {
+    if (res && res.success) {
+      const captcha: CaptchaData = res.data;
+      registerForm.value.uuid = captcha.uuid;
+      captchaSvg.value = captcha.captchaImage;
+    } else {
+      ElMessage.error(res?.msg || "获取验证码失败");
+    }
+  } catch (err: any) {
     console.error("验证码获取失败", err);
+    ElMessage.error(err?.message || "获取验证码失败，请刷新页面重试");
   } finally {
     loading.value = false;
   }

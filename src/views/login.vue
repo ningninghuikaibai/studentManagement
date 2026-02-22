@@ -125,28 +125,55 @@ const handleLogin = async () => {
   loading.value = true; // 锁住按钮,防止用户多次点击
 
   try {
+    console.log("登录请求参数:", loginForm.value);
     const res = await userLogin(loginForm.value);
-    const result = res.data;
+    console.log("登录响应数据:", res);
+
+    // 根据 request.ts 的响应拦截器，res 已经是 response.data 了
+    // 所以 res 就是后端返回的数据结构：{ code, success, data, msg }
+    const result = res;
 
     // 业务状态码判断
-    if (result.code != 200) {
+    if (result.code !== 200 || !result.success) {
       ElMessage.error(result.msg || "登录失败");
       fetchCaptcha(); // 失败刷新验证码
       return;
     }
+    
     // 登录成功逻辑
-    // const token = result.data.token; 
-    localStorage.setItem("token", result.data.token);
-    // console.log("token=", result.data.token);
+    // token 在 result.data 中
+    const token = result.data?.token;
+    if (token) {
+      localStorage.setItem("token", token);
+      ElMessage.success("登录成功");
 
-    ElMessage.success("登录成功");
-
-    // 延迟0.5秒进入首页
-    setTimeout(() => {
-      router.push("/home");
-    }, 500);
+      // 延迟0.5秒进入首页
+      setTimeout(() => {
+        router.push("/home");
+      }, 500);
+    } else {
+      console.error("登录响应中没有token:", result);
+      ElMessage.error("登录失败：未获取到token");
+      fetchCaptcha();
+    }
   } catch (err: any) {
-    ElMessage.error("网络错误，请稍后重试!");
+    console.error("登录异常:", err);
+    console.error("错误详情:", {
+      message: err?.message,
+      response: err?.response,
+      responseData: err?.response?.data,
+    });
+    
+    // 处理不同的错误情况
+    let errorMsg = "网络错误，请稍后重试!";
+    if (err?.response?.data) {
+      errorMsg = err.response.data.msg || err.response.data.message || errorMsg;
+    } else if (err?.message) {
+      errorMsg = err.message;
+    }
+    
+    ElMessage.error(errorMsg);
+    fetchCaptcha(); // 失败刷新验证码
   } finally {
     //进行兜底始终会将disabled设置为false
     loading.value = false;
@@ -157,12 +184,20 @@ const handleLogin = async () => {
 const fetchCaptcha = async () => {
   try {
     const res = await getCaptcha();
-    const captcha: CaptchaData = res.data.data;
-
-    loginForm.value.uuid = captcha.uuid;
-    captchaSvg.value = captcha.captchaImage;
-  } catch (err) {
-    console.error("验证码获取失败", err);
+    console.log("验证码响应:", res);
+    
+    if (res && res.success) {
+      const captcha: CaptchaData = res.data;
+      loginForm.value.uuid = captcha.uuid;
+      captchaSvg.value = captcha.captchaImage;
+      console.log("验证码获取成功, uuid:", captcha.uuid);
+    } else {
+      console.error("验证码获取失败:", res);
+      ElMessage.error(res?.msg || "获取验证码失败");
+    }
+  } catch (err: any) {
+    console.error("验证码获取异常:", err);
+    ElMessage.error(err?.message || "获取验证码失败，请刷新页面重试");
   }
 };
 

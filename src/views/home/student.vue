@@ -272,11 +272,11 @@ const fetchClassTree = async () => {
   try {
     const res = await getClasses({
       pageNum: 1,
-      pageSize: 10,
+      pageSize: 1000, // 获取所有班级
     });
 
-    if (res.data.success) {
-      const rows: ClassItem[] = res.data.data.rows;
+    if (res && res.success) {
+      const rows: ClassItem[] = res.data?.rows || [];
 
       // 转成 Tree 需要的结构
       classList.value = rows.map((item) => ({
@@ -284,18 +284,24 @@ const fetchClassTree = async () => {
         label: `${item.className}`,
         raw: item, // 把完整数据挂上，后面右侧查询学生要用
       }));
+      
+      // 默认使第一条班级列表高亮
+      nextTick(() => {
+        if (classList.value.length > 0) {
+          const firstId = classList.value[0].id;
+          classListRef.value?.setCurrentKey(firstId);
+          queryParams.classId = firstId;
+          fetchStudentList();
+        }
+      });
+    } else {
+      ElMessage.error(res?.msg || "获取班级列表失败");
+      classList.value = [];
     }
-    // 默认使第一条班级列表高亮
-    nextTick(() => {
-      if (classList.value.length > 0) {
-        const firstId = classList.value[0].id;
-        classListRef.value?.setCurrentKey(firstId);
-        queryParams.classId = firstId;
-        fetchStudentList();
-      }
-    });
-  } catch (error) {
-    ElMessage.error("获取班级列表失败");
+  } catch (error: any) {
+    console.error("获取班级列表失败:", error);
+    ElMessage.error(error?.message || "获取班级列表失败");
+    classList.value = [];
   } finally {
     loading.value = false;
   }
@@ -303,20 +309,29 @@ const fetchClassTree = async () => {
 
 // 获取学生列表
 const fetchStudentList = async () => {
-  if (!queryParams.classId) return;
+  if (!queryParams.classId) {
+    studentList.value = [];
+    total.value = 0;
+    return;
+  }
 
   loading.value = true;
   try {
     const res = await getStudentList(buildQueryParams(queryParams));
 
-    if (res.data.success) {
-      studentList.value = res.data.data.rows;
-      total.value = res.data.data.count;
+    if (res && res.success) {
+      studentList.value = res.data?.rows || [];
+      total.value = res.data?.count || 0;
+    } else {
+      ElMessage.error(res?.msg || "获取学生列表失败");
+      studentList.value = [];
+      total.value = 0;
     }
-    console.log("获取数据成功");
-    console.log(res.data);
-  } catch {
-    ElMessage.error("获取学生列表失败");
+  } catch (error: any) {
+    console.error("获取学生列表失败:", error);
+    ElMessage.error(error?.message || "获取学生列表失败");
+    studentList.value = [];
+    total.value = 0;
   } finally {
     loading.value = false;
   }
@@ -333,11 +348,16 @@ const handleNodeClick = (data: any) => {
 const fetchMajorList = async () => {
   try {
     const res = await getMajorList();
-    if (res.data.success) {
-      majorList.value = res.data.data;
+    if (res && res.success) {
+      majorList.value = res.data || [];
+    } else {
+      ElMessage.error(res?.msg || "获取专业列表失败");
+      majorList.value = [];
     }
-  } catch (error) {
-    ElMessage.error("获取专业列表失败");
+  } catch (error: any) {
+    console.error("获取专业列表失败:", error);
+    ElMessage.error(error?.message || "获取专业列表失败");
+    majorList.value = [];
   }
 };
 
@@ -493,11 +513,16 @@ const currentClassName = computed(() => {
 const fetchSexDict = async () => {
   try {
     const res = await getDictByType("sys_user_sex");
-    if (res.data.success) {
-      sexOptions.value = res.data.data;
+    if (res && res.success) {
+      sexOptions.value = res.data || [];
+    } else {
+      ElMessage.error(res?.msg || "获取性别字典失败");
+      sexOptions.value = [];
     }
-  } catch {
-    ElMessage.error("获取性别字典失败");
+  } catch (error: any) {
+    console.error("获取性别字典失败:", error);
+    ElMessage.error(error?.message || "获取性别字典失败");
+    sexOptions.value = [];
   }
 };
 // 进行列表的性别字典映射
